@@ -158,6 +158,10 @@ impl Headers {
         self.headers.remove(&key.to_lowercase());
     }
 
+    pub fn clear(&mut self) {
+        self.headers.clear();
+    }
+
     pub fn extend(&mut self, headers: &Headers) {
         for iter in headers.headers.iter() {
             let (key, values) = iter.pair();
@@ -171,7 +175,10 @@ impl Headers {
 
         for (key, value) in req_headers {
             let key = key.to_string().to_lowercase();
-            let value = value.to_str().unwrap().to_string();
+            let value = match value.to_str() {
+                Ok(value) => value.to_string(),
+                Err(_) => continue,
+            };
             headers.headers.entry(key).or_default().push(value);
         }
 

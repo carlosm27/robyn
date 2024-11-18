@@ -94,16 +94,19 @@ Batman was curious about how to run the application. Robyn explained that he cou
         --processes PROCESSES
                               Choose the number of processes. [Default: 1]
         --workers WORKERS     Choose the number of workers. [Default: 1]
+        --dev                 Development mode. It restarts the server based on file changes.
         --log-level LOG_LEVEL
                               Set the log level name
-        --open-browser        Open the browser on successful start.
-
-        Module flags
         --create              Create a new project template.
         --docs                Open the Robyn documentation.
+        --open-browser        Open the browser on successful start.
         --version             Show the Robyn version.
-        --dev                 Development mode. It restarts the server based on file changes.
-
+        --compile-rust-path COMPILE_RUST_PATH
+                              Compile rust files in the given path.
+        --create-rust-file CREATE_RUST_FILE
+                              Create a rust file with the given name.
+        --disable-openapi     Disable the OpenAPI documentation.
+        --fast                Fast mode. It sets the optimal values for processes, workers and log level. However, you can override them.
       ```
     </CodeGroup>
   </Col>
@@ -130,15 +133,19 @@ Batman was curious about how to run the application. Robyn explained that he cou
         --processes PROCESSES
                               Choose the number of processes. [Default: 1]
         --workers WORKERS     Choose the number of workers. [Default: 1]
+        --dev                 Development mode. It restarts the server based on file changes.
         --log-level LOG_LEVEL
                               Set the log level name
-        --open-browser        Open the browser on successful start.
-
-        Module flags
         --create              Create a new project template.
         --docs                Open the Robyn documentation.
+        --open-browser        Open the browser on successful start.
         --version             Show the Robyn version.
-        --dev                 Development mode. It restarts the server based on file changes.
+        --compile-rust-path COMPILE_RUST_PATH
+                              Compile rust files in the given path.
+        --create-rust-file CREATE_RUST_FILE
+                              Create a rust file with the given name.
+        --disable-openapi     Disable the OpenAPI documentation.
+        --fast                Fast mode. It sets the optimal values for processes, workers and log level. However, you can override them.
       ```
     </CodeGroup>
   </Col>
@@ -237,19 +244,24 @@ Batman was curious about how to access path parameters and query parameters from
     from robyn import jsonify
 
     @app.post("/jsonify/:id")
-    async def json(request):
+    async def json(request, path_params):
         print(request.path_params["id"])
+        print(path_params["id"])
+        assert request.path_params["id"] == path_params["id"]
         return {"hello": "world"}
 
 
     ```
 
     ```python {{ title: 'typed' }}
-    from robyn import jsonify, Request
+    from robyn import jsonify
+    from robyn.types import PathParams
 
     @app.post("/jsonify/:id")
-    async def json(request: Request):
-        print(request.path_params["id"])
+    async def json(req_obj: Request, path_parameters: PathParams):
+        print(req_obj.path_params["id"])
+        print(path_params["id"])
+        assert req_obj.path_params["id"] == path_parameters["id"]
         return {"hello": "world"}
 
     ```
@@ -275,17 +287,20 @@ Batman was curious about how to access path parameters and query parameters from
 
     ```python {{ title: 'untyped' }}
     @app.get("/query")
-    async def query_get(request):
-        query_data = request.query_params.to_dict()
+    async def query_get(request, query_params):
+        query_data = query_params.to_dict()
+        assert query_data == request.query_params.to_dict()
         return jsonify(query_data)
     ```
 
     ```python {{ title: 'typed' }}
     from robyn import Request
+    from robyn.robyn import QueryParams
 
     @app.get("/query")
-    async def query_get(request: Request):
-        query_data = request.query_params.to_dict()
+    async def query_get(req_obj: Request, query_params: QueryParams):
+        query_data = query_params.to_dict()
+        assert query_data == req_obj.query_params.to_dict()
         return jsonify(query_data)
     ```
 
@@ -293,6 +308,65 @@ Batman was curious about how to access path parameters and query parameters from
   </Col>
 </Row>
 
+<Row>
+  <Col>
+
+  Any request param can be used in the handler function either using type annotations or using the reserved names.
+  
+  <b>
+ Do note that the type annotations will take precedence over the reserved names.
+ </b>
+  
+  Robyn showed Batman example syntaxes of accessing the request params:
+
+  </Col>
+  <Col sticky>
+
+    <CodeGroup title="Request" tag="GET" label="/split_request_params">
+
+    ```python
+    from robyn.robyn import QueryParams, Headers
+    from robyn.types import PathParams, RequestMethod, RequestBody, RequestURL
+    
+    @app.get("/untyped/query_params")
+    def untyped_basic(query_params):
+        return query_params.to_dict()
+    
+    
+    @app.get("/typed/query_params")
+    def typed_basic(query_data: QueryParams):
+        return query_data.to_dict()
+    
+    
+    @app.get("/untyped/path_params/:id")
+    def untyped_path_params(query_params: PathParams):
+        return query_params  # contains the path params since the type annotations takes precedence over the reserved names
+    
+    
+    @app.post("/typed_untyped/combined")
+    def typed_untyped_combined(
+            query_params,
+            method_data: RequestMethod,
+            body_data: RequestBody,
+            url: RequestURL,
+            headers_item: Headers,
+    ):
+        return {
+            "body": body_data,
+            "query_params": query_params.to_dict(),
+            "method": method_data,
+            "url": url.path,
+            "headers": headers_item.get("server"),
+        }
+    ```
+
+    </CodeGroup>
+  </Col>
+</Row>
+
+Type Aliases: `Request`, `QueryParams`, `Headers`, `PathParams`, `RequestBody`, `RequestMethod`, `RequestURL`, `FormData`, `RequestFiles`, `RequestIP`, `RequestIdentity`
+
+Reserved Names: `r`, `req`, `request`, `query_params`, `headers`, `path_params`, `body`, `method`, `url`, `ip_addr`, `identity`, `form_data`, `files`
 
 ---
 
@@ -484,12 +558,10 @@ Either, by using the `headers` field in the `Response` object:
 ### Global Response Headers
 
 <Row>
-<Col>
-Or setting the Headers globally *per* router.
-</Col>
-<Col>
 
+<Col>Or setting the Headers globally *per* router.</Col>
 
+  <Col>
     <CodeGroup title="Request" tag="GET" label="/hello_world">
 
     ```python {{ title: 'untyped' }}
@@ -500,16 +572,14 @@ Or setting the Headers globally *per* router.
     app.add_response_header("content-type", "application/json")
     ```
     </CodeGroup>
-  </Col>
-</Row>
 
-<Row>
+  </Col>
+
 <Col>
 `add_response_header` appends the header to the list of headers, while `set_response_header` replaces the header if it exists.
 </Col>
 <Col>
 
-
     <CodeGroup title="Request" tag="GET" label="/hello_world">
 
     ```python {{ title: 'untyped' }}
@@ -520,7 +590,25 @@ Or setting the Headers globally *per* router.
     app.set_response_header("content-type", "application/json")
     ```
     </CodeGroup>
+
   </Col>
+  
+<Col>
+To prevent the headers from getting applied to certain endpoints, you can use the `exclude_response_headers_for` function.
+</Col>
+<Col>
+    <CodeGroup title="Request" tag="GET" label="/hello_world">
+
+    ```python {{ title: 'untyped' }}
+    app.exclude_response_headers_for(["/login", "/signup"])
+    ```
+
+    ```python {{title: 'typed'}}
+    app.exclude_response_headers_for(["/login", "/signup"])
+    ```
+    </CodeGroup>
+
+</Col>
 </Row>
 
 ### Cookies

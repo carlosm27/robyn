@@ -31,8 +31,8 @@ where
     match function.number_of_params {
         0 => handler.call0(),
         1 => {
-            if kwargs.get_item("global_dependencies").is_some()
-                || kwargs.get_item("router_dependencies").is_some()
+            if kwargs.get_item("global_dependencies")?.is_some()
+                || kwargs.get_item("router_dependencies")?.is_some()
             // these are reserved keywords
             {
                 handler.call((), Some(kwargs))
@@ -100,7 +100,7 @@ pub async fn execute_http_function(
     })
 }
 
-pub async fn execute_event_handler(
+pub async fn execute_startup_handler(
     event_handler: Option<Arc<FunctionInfo>>,
     task_locals: &TaskLocals,
 ) -> Result<()> {

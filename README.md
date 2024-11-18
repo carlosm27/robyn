@@ -5,11 +5,12 @@
 [![Twitter](https://badgen.net/badge/icon/twitter?icon=twitter&label)](https://twitter.com/Robyn_oss)
 [![Downloads](https://static.pepy.tech/personalized-badge/Robyn?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/Robyn)
 [![GitHub tag](https://img.shields.io/github/tag/sparckles/Robyn?include_prereleases=&sort=semver&color=black)](https://github.com/sparckles/Robyn/releases/)
-[![License](https://img.shields.io/badge/License-BSD_2.0-black)](#license)
+[![License](https://img.shields.io/badge/License-BSD_2.0-black)](https://github.com/sparckles/Robyn/blob/main/LICENSE)
 ![Python](https://img.shields.io/badge/Support-Version%20%E2%89%A5%203.8-brightgreen)
 
 [![view - Documentation](https://img.shields.io/badge/view-Documentation-blue?style=for-the-badge)](https://robyn.tech/documentation)
 [![Discord](https://img.shields.io/discord/999782964143603713?label=discord&logo=discord&logoColor=white&style=for-the-badge&color=blue)](https://discord.gg/rkERZ5eNU8)
+[![Gurubase](https://img.shields.io/badge/Gurubase-Ask%20Robyn%20Guru-006BFF?style=for-the-badge)](https://gurubase.io/g/robyn)
 
 Robyn is a High-Performance, Community-Driven, and Innovator Friendly Web Framework with a Rust runtime. You can learn more by checking our [community resources](https://robyn.tech/documentation/community-resources)!
 
@@ -66,14 +67,23 @@ usage: app.py [-h] [--processes PROCESSES] [--workers WORKERS] [--dev] [--log-le
 Robyn, a fast async web framework with a rust runtime.
 
 options:
-  -h, --help                show this help message and exit
-  --processes PROCESSES     Choose the number of processes. [Default: 1]
-  --workers WORKERS         Choose the number of workers. [Default: 1]
-  --dev                     Development mode. It restarts the server based on file changes.
-  --log-level LOG_LEVEL     Set the log level name
-  --create                  Create a new project template.
-  --docs                    Open the Robyn documentation.
-  --open-browser            Open the browser on successful start.
+  -h, --help            show this help message and exit
+  --processes PROCESSES
+                        Choose the number of processes. [Default: 1]
+  --workers WORKERS     Choose the number of workers. [Default: 1]
+  --dev                 Development mode. It restarts the server based on file changes.
+  --log-level LOG_LEVEL
+                        Set the log level name
+  --create              Create a new project template.
+  --docs                Open the Robyn documentation.
+  --open-browser        Open the browser on successful start.
+  --version             Show the Robyn version.
+  --compile-rust-path COMPILE_RUST_PATH
+                        Compile rust files in the given path.
+  --create-rust-file CREATE_RUST_FILE
+                        Create a rust file with the given name.
+  --disable-openapi     Disable the OpenAPI documentation.
+  --fast                Enable the fast mode.
 ```
 
 Log level can be `DEBUG`, `INFO`, `WARNING`, or `ERROR`.
@@ -110,6 +120,7 @@ python --version
 - Written in Rust, btw xD
 - A multithreaded Runtime
 - Extensible
+- Automatic OpenAPI generation
 - A simple API
 - Sync and Async Function Support
 - Dynamic URL Routing
@@ -134,6 +145,20 @@ If you're feeling curious. You can take a look at a more detailed architecture [
 If you still need help to get started, feel free to reach out on our [community discord](https://discord.gg/rkERZ5eNU8).
 
 ### ⚙️ To Develop Locally
+
+#### Prerequisites
+
+Before starting, ensure you have the following installed:
+- Python >= 3.8, < 3.12 , Support for Python 3.13 is coming soon!
+- Rust (latest stable)
+- C compiler (gcc/clang)
+
+#### Setup
+
+- Clone the repository:
+```
+git clone https://github.com/sparckles/Robyn.git
+```
 
 - Setup a virtual environment:
 ```
@@ -180,8 +205,29 @@ maturin develop && poetry run test_server
 maturin develop && pytest integration_tests
 ```
 
-- Potential errors
+- **tip:** For IO-uring support, you can use the following command:
+```
+maturin develop --cargo-extra-args="--features=io-uring"
+```
+
+- **tip:** To use your local Robyn version in other projects, you can install it using pip:
+```
+pip install -e path/to/robyn/target/wheels/robyn-<version>-<python_version>-<platform>.whl
+```
+e.g.
+```
+pip install -e /repos/Robyn/target/wheels/robyn-0.63.0-cp312-cp312-macosx_10_15_universal2.whl
+```
+
+#### Troubleshooting
+If you face any issues, here are some common fixes:
   - install `patchelf` with `pip install patchelf` if you face `patchelf` not found issue during `maturin develop` (esp. on Arch Linux)
+  - If you get Rust compilation errors, ensure you have a C compiler installed:
+    - Ubuntu/Debian: `sudo apt install build-essential`
+    - Fedora: `sudo dnf install gcc`
+    - macOS: Install Xcode Command Line Tools
+    - Windows: Install Visual Studio Build Tools
+
 
 ## ✨ Special thanks
 

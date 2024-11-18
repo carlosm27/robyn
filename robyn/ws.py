@@ -3,9 +3,9 @@ from __future__ import annotations
 import asyncio
 import inspect
 from typing import TYPE_CHECKING, Callable
+
 from robyn.argument_parser import Config
 from robyn.dependency_injection import DependencyMap
-
 from robyn.robyn import FunctionInfo
 
 if TYPE_CHECKING:
@@ -23,7 +23,7 @@ class WebSocket:
     def __init__(self, robyn_object: "Robyn", endpoint: str, config: Config = Config(), dependencies: DependencyMap = DependencyMap()) -> None:
         self.robyn_object = robyn_object
         self.endpoint = endpoint
-        self.methods = {}
+        self.methods: dict = {}
         self.config = config
         self.dependencies = dependencies
 
